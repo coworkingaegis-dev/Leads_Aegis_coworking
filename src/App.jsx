@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { supabase, supabaseConfigured } from './supabaseClient'
-import { isReferral, aed, STATUSES, CLOSED_STATUSES, REFERRAL_STATUSES, SOURCES, SERVICES, closedLabel, paymentLabel } from './constants'
+import { isReferral, STATUSES, CLOSED_STATUSES, REFERRAL_STATUSES, SOURCES, SERVICES, closedLabel, paymentLabel } from './constants'
 
 // Status shown / filtered on each tab
 const statusOf = (tab, c) => tab === 'clients' ? c.status : tab === 'referral' ? paymentLabel(c) : closedLabel(c)
@@ -8,6 +8,7 @@ const statusOptions = (tab) => tab === 'clients' ? STATUSES : tab === 'referral'
 import Login from './components/Login'
 import ClientForm, { slug } from './components/ClientForm'
 import ClientTable from './components/ClientTable'
+import Home from './components/Home'
 
 const TABS = [
   { id: 'clients', label: 'Clients', hint: 'Every lead and client' },
@@ -116,7 +117,6 @@ function CRM({ user }) {
     if (error) alert(error.message); else load()
   }
 
-  const referralTotal = groups.referral.reduce((s, c) => s + Number(c.referral_amount || 0), 0)
   const stats = { clients: groups.clients.length, closed: groups.closed.length, referral: groups.referral.length }
   const clearFilters = () => {
     setSearch(''); setStatusFilter('All'); setSourceFilter('All'); setServiceFilter('All'); setDateFrom(''); setDateTo('')
@@ -142,8 +142,12 @@ function CRM({ user }) {
     <div className="app">
       <header className="topbar">
         <button className="brand" onClick={() => setTab(null)}>
-          <span className="brand-mark sm">A</span>
-          <span><strong>Aegis</strong> CRM</span>
+          <img src="/aegis-mark.png" alt="" className="brand-logo" />
+          <span className="brand-text">
+            <strong>AEGIS</strong>
+            <small>Coworking Business Center LTD</small>
+          </span>
+          <span className="brand-tag">CRM</span>
         </button>
         <div className="topbar-right">
           <button className="btn primary" onClick={() => setEditing({})}>+ New client</button>
@@ -156,19 +160,7 @@ function CRM({ user }) {
         {error && <div className="error">Couldn't load clients: {error}</div>}
 
         {!tab ? (
-          <>
-            <h1 className="page-title">Dashboard</h1>
-            <div className="cards">
-              {TABS.map(t => (
-                <button key={t.id} className={`home-card ${t.id}`} onClick={() => openTab(t.id)}>
-                  <span className="home-card-label">{t.label}</span>
-                  <span className="home-card-num">{loading ? '…' : stats[t.id]}</span>
-                  <span className="muted">{t.id === 'referral' && !loading ? `Fees: ${aed(referralTotal)}` : t.hint}</span>
-                  <span className="home-card-go">Open →</span>
-                </button>
-              ))}
-            </div>
-          </>
+          <Home loading={loading} groups={groups} onOpen={openTab} onNew={() => setEditing({})} />
         ) : (
           <>
             <nav className="tabs">
