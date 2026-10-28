@@ -8,7 +8,7 @@ import ClientTable from './components/ClientTable'
 const TABS = [
   { id: 'clients', label: 'Clients', hint: 'Every lead and client' },
   { id: 'closed', label: 'Closed Clients', hint: 'Status = Closed' },
-  { id: 'referral', label: 'Referral Clients', hint: 'Came through a referral' },
+  { id: 'referral', label: 'Referral Clients', hint: 'Referral + Closed' },
 ]
 
 export default function App() {
@@ -138,7 +138,7 @@ function CRM({ user }) {
             </div>
 
             {loading ? <div className="empty">Loading…</div>
-              : <ClientTable tab={tab} rows={rows} onEdit={setEditing} onDelete={remove} />}
+              : <ClientTable rows={rows} onEdit={setEditing} onDelete={remove} />}
           </>
         )}
       </main>
