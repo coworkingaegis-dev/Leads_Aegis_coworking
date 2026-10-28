@@ -1,6 +1,9 @@
 import { slug } from './ClientForm'
+import { isStepStatus } from '../constants'
 
-const StatusBadge = ({ value }) => value ? <span className={`status-badge ${slug(value)}`}>{value}</span> : <span className="pill none">—</span>
+const StatusBadge = ({ value }) => value
+  ? <span className={`status-badge ${slug(value)} ${isStepStatus(value) ? 'step' : ''}`}>{value}</span>
+  : <span className="pill none">—</span>
 const text = (v) => (v == null || v === '' ? <span className="muted">—</span> : v)
 
 // Same columns on every tab
