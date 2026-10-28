@@ -61,7 +61,7 @@ function CRM({ user }) {
     const q = search.trim().toLowerCase()
     return groups[tab].filter(c =>
       (tab !== 'clients' || statusFilter === 'All' || c.status === statusFilter) &&
-      (!q || [c.name, c.phone, c.referral_name, c.service, c.source].some(v => v && v.toLowerCase().includes(q)))
+      (!q || [c.name, c.phone, c.email, c.referral_name, c.service, c.source].some(v => v && v.toLowerCase().includes(q)))
     )
   }, [groups, tab, search, statusFilter])
 
@@ -129,7 +129,7 @@ function CRM({ user }) {
             </nav>
 
             <div className="toolbar">
-              <input className="search" placeholder="Search name, phone, referral…" value={search} onChange={e => setSearch(e.target.value)} />
+              <input className="search" placeholder="Search name, phone, email, referral…" value={search} onChange={e => setSearch(e.target.value)} />
               {tab === 'clients' && (
                 <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                   <option>All</option>{STATUSES.map(s => <option key={s}>{s}</option>)}
