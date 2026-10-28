@@ -76,13 +76,7 @@ export default function Home({ loading, groups, onOpen, onNew }) {
         </div>
       </section>
 
-      {/* Key numbers */}
-      <section className="kpis">
-        <div className="kpi"><span className="kpi-num">{n(all.length)}</span><span className="kpi-label">Total clients</span></div>
-        <div className="kpi"><span className="kpi-num">{n(followUps)}</span><span className="kpi-label">Follow-ups open</span></div>
-        <div className="kpi"><span className="kpi-num">{n(closed.length)}</span><span className="kpi-label">Closed deals</span></div>
-        <div className="kpi"><span className="kpi-num">{n(conversion + '%')}</span><span className="kpi-label">Conversion rate</span></div>
-      </section>
+
 
       {/* Section cards */}
       <section className="sections">
