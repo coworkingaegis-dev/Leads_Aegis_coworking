@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { supabase, supabaseConfigured } from './supabaseClient'
-import { isReferral, aed, STATUSES, CLOSED_STATUSES, closedLabel } from './constants'
+import { isReferral, aed, STATUSES, CLOSED_STATUSES, SOURCES, SERVICES, closedLabel } from './constants'
 import Login from './components/Login'
 import ClientForm from './components/ClientForm'
 import ClientTable from './components/ClientTable'
@@ -40,6 +40,11 @@ function CRM({ user }) {
   const [editing, setEditing] = useState(null) // {} for new, row for edit
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [sourceFilter, setSourceFilter] = useState('All')
+  const [serviceFilter, setServiceFilter] = useState('All')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [sort, setSort] = useState({ key: 'client_date', dir: 'desc' })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -61,13 +66,18 @@ function CRM({ user }) {
     const q = search.trim().toLowerCase()
     return groups[tab].filter(c =>
       (statusFilter === 'All' || (tab === 'clients' ? c.status : closedLabel(c)) === statusFilter) &&
+      (sourceFilter === 'All' || c.source === sourceFilter) &&
+      (serviceFilter === 'All' || c.service === serviceFilter) &&
+      (!dateFrom || (c.client_date && c.client_date >= dateFrom)) &&
+      (!dateTo || (c.client_date && c.client_date <= dateTo)) &&
       (!q || [c.name, c.company_name, c.phone, c.email, c.referral_name, c.service, c.source, c.desk_number].some(v => v && v.toLowerCase().includes(q)))
     )
-  }, [groups, tab, search, statusFilter])
+  }, [groups, tab, search, statusFilter, sourceFilter, serviceFilter, dateFrom, dateTo])
 
   // Desks already given to other clients (shown grey in the desk list)
-  const takenDesks = useMemo(() => new Set(
-    clients.filter(c => c.desk_number && c.id !== editing?.id).map(c => c.desk_number)
+  const takenDesks = useMemo(() => new Map(
+    clients.filter(c => c.desk_number && c.id !== editing?.id)
+      .map(c => [c.desk_number, c.company_name || c.name || 'another client'])
   ), [clients, editing])
 
   // Which form to open: new / Clients-tab edit / Closed-tab edit
@@ -92,7 +102,25 @@ function CRM({ user }) {
 
   const referralTotal = groups.referral.reduce((s, c) => s + Number(c.referral_amount || 0), 0)
   const stats = { clients: groups.clients.length, closed: groups.closed.length, referral: groups.referral.length }
-  const openTab = (id) => { setTab(id); setSearch(''); setStatusFilter('All') }
+  const clearFilters = () => {
+    setSearch(''); setStatusFilter('All'); setSourceFilter('All'); setServiceFilter('All'); setDateFrom(''); setDateTo('')
+  }
+  const openTab = (id) => { setTab(id); clearFilters(); setSort({ key: 'client_date', dir: 'desc' }) }
+  const filtersOn = search || statusFilter !== 'All' || sourceFilter !== 'All' || serviceFilter !== 'All' || dateFrom || dateTo
+
+  // "Sort by" dropdown choices
+  const statusKey = tab === 'clients' ? 'status' : 'closed_status'
+  const SORT_OPTIONS = [
+    ['client_date:desc', 'Newest first'],
+    ['client_date:asc', 'Oldest first'],
+    ['company_name:asc', 'Company A → Z'],
+    ['company_name:desc', 'Company Z → A'],
+    [`${statusKey}:asc`, 'Status'],
+    ['source:asc', 'Source'],
+    ['service:asc', 'Service'],
+  ]
+  const sortValue = `${sort.key}:${sort.dir}`
+  const pickSort = (v) => { const [key, dir] = v.split(':'); setSort({ key, dir }) }
 
   return (
     <div className="app">
@@ -138,13 +166,42 @@ function CRM({ user }) {
 
             <div className="toolbar">
               <input className="search" placeholder="Search company, name, phone, email, desk…" value={search} onChange={e => setSearch(e.target.value)} />
-              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                <option>All</option>{(tab === 'clients' ? STATUSES : CLOSED_STATUSES).map(s => <option key={s}>{s}</option>)}
-              </select>
+              <label className="tool">Sort by
+                <select value={sortValue} onChange={e => pickSort(e.target.value)}>
+                  {!SORT_OPTIONS.some(o => o[0] === sortValue) && <option value={sortValue}>Custom (column)</option>}
+                  {SORT_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </label>
+            </div>
+
+            <div className="toolbar filters">
+              <label className="tool">Status
+                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                  <option>All</option>{(tab === 'clients' ? STATUSES : CLOSED_STATUSES).map(s => <option key={s}>{s}</option>)}
+                </select>
+              </label>
+              <label className="tool">Source
+                <select value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}>
+                  <option>All</option>{SOURCES.map(s => <option key={s}>{s}</option>)}
+                </select>
+              </label>
+              <label className="tool">Service
+                <select value={serviceFilter} onChange={e => setServiceFilter(e.target.value)}>
+                  <option>All</option>{SERVICES.map(s => <option key={s}>{s}</option>)}
+                </select>
+              </label>
+              <label className="tool">From
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+              </label>
+              <label className="tool">To
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+              </label>
+              {filtersOn && <button className="btn small clear" onClick={clearFilters}>Clear filters</button>}
+              <span className="muted result-count">{rows.length} {rows.length === 1 ? 'client' : 'clients'}</span>
             </div>
 
             {loading ? <div className="empty">Loading…</div>
-              : <ClientTable key={tab} tab={tab} rows={rows} onEdit={setEditing} onDelete={remove} />}
+              : <ClientTable tab={tab} rows={rows} sort={sort} onSort={setSort} onEdit={setEditing} onDelete={remove} />}
           </>
         )}
       </main>
