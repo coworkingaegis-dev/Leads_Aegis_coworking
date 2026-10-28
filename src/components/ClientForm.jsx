@@ -9,7 +9,8 @@ import { YesNoToggle } from './YesNo'
   mode:
    'new'    -> New client: basic details + main status
    'lead'   -> Edit from Clients tab: basic details + main status; Closed Client Status is grey (read-only)
-   'closed' -> Edit from Closed / Referral tab: basic details + Closed Client Status editable; main status hidden
+   'closed'   -> Edit from Closed tab: basic details + Closed Client Status editable; main status hidden
+   'referral' -> Edit from Referral tab: basic details + referral details + Payment Paid / Unpaid (separate)
 */
 export default function ClientForm({ initial, mode, takenDesks, onSave, onClose }) {
   const [form, setForm] = useState({ ...EMPTY_CLIENT(), ...cleanNulls(initial) })
@@ -18,6 +19,7 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const isClosedMode = mode === 'closed'
+  const isReferralMode = mode === 'referral'
   const locked = mode === 'lead'          // Closed Client Status greyed out
 
   const pickStatus = (s) => set('status', s)
@@ -58,6 +60,12 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
       payload.deal_value = num(form.deal_value)
       payload.referral_percent = num(form.referral_percent)
       payload.notes = t(form.notes)
+    } else if (isReferralMode) {
+      payload.referral_name = t(form.referral_name)
+      payload.deal_value = num(form.deal_value)
+      payload.referral_percent = num(form.referral_percent)
+      payload.referral_paid = form.referral_paid
+      payload.notes = t(form.notes)
     } else {
       payload.status = form.status || 'None'
     }
@@ -73,7 +81,7 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
     <div className="modal-backdrop" onMouseDown={onClose}>
       <form className="modal" onSubmit={submit} onMouseDown={e => e.stopPropagation()}>
         <div className="modal-head">
-          <h2>{mode === 'new' ? 'New client' : isClosedMode ? 'Edit closed client' : 'Edit client'}</h2>
+          <h2>{mode === 'new' ? 'New client' : isClosedMode ? 'Edit closed client' : isReferralMode ? 'Edit referral client' : 'Edit client'}</h2>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
@@ -101,7 +109,7 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
           </section>
 
           {/* Main status: New + Clients tab only */}
-          {!isClosedMode && (
+          {!isClosedMode && !isReferralMode && (
             <section>
               <h3>Status</h3>
               <div className="status-picker">
@@ -114,8 +122,8 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
             </section>
           )}
 
-          {/* Closed Client Status: editable in Closed tab, grey in Clients tab, hidden for new */}
-          {mode !== 'new' && (
+          {/* Closed Client Status: editable in Closed tab, grey in Clients tab, hidden for new + referral */}
+          {(isClosedMode || locked) && (
             <section className={locked ? 'locked' : ''}>
               <h3>
                 Closed Client Status
@@ -154,8 +162,8 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
             </section>
           )}
 
-          {/* Referral + notes: Closed tab only */}
-          {isClosedMode && (
+          {/* Referral + notes: Closed and Referral tabs */}
+          {(isClosedMode || isReferralMode) && (
             <section>
               <h3>Referral</h3>
               <div className="grid2">
@@ -165,6 +173,19 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
                 <label>Amount (auto)<input value={aed(amount)} readOnly className="readonly" /></label>
               </div>
               <label style={{ marginTop: 12 }}>Notes<textarea rows="2" value={form.notes} onChange={e => set('notes', e.target.value)} /></label>
+            </section>
+          )}
+
+          {/* Referral payment status: Referral tab only, separate from Closed Client Status */}
+          {isReferralMode && (
+            <section>
+              <h3>Referral Payment Status</h3>
+              <div className="status-picker">
+                <button type="button" className={`status-chip payment-paid ${form.referral_paid === true ? 'active' : ''}`}
+                  onClick={() => set('referral_paid', true)}>Payment Paid</button>
+                <button type="button" className={`status-chip payment-unpaid ${form.referral_paid !== true ? 'active' : ''}`}
+                  onClick={() => set('referral_paid', false)}>Payment Unpaid</button>
+              </div>
             </section>
           )}
 
