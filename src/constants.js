@@ -1,32 +1,42 @@
 export const SOURCES = ['Web', 'Walk-in', 'WhatsApp', 'Email', 'Referral']
 export const SERVICES = ['Dedicated Desk', 'Flexi Desk', 'Private Office', 'Virtual Office', 'Meeting Room', 'Day Pass']
+// Status buttons you can click
 export const STATUSES = ['None', 'Proposal Sent', 'Follow-up', 'Closed']
 
-// When a status is clicked, these checklist fields switch to Yes
+// Yes/No checklist fields, in form order, with the status each one gives
+export const YES_NO_FIELDS = [
+  { key: 'proposal', label: 'Proposal', status: 'Proposal Sent' },
+  { key: 'payment', label: 'Payment', status: 'Payment Done' },
+  { key: 'lease_agreement', label: 'Lease Agreement', status: 'Lease Signed' },
+  { key: 'access_rp', label: 'AccessRP Registered', status: 'AccessRP Registered' },
+  { key: 'kyc', label: 'KYC', status: 'KYC Done' },
+  { key: 'license', label: 'License', status: 'License Done' },
+  { key: 'tawtheeq', label: 'Tawtheeq', status: 'Tawtheeq Done' },
+]
+
+// Every status a client can have (used for filters)
+export const ALL_STATUSES = ['None', 'Proposal Sent', 'Follow-up',
+  ...YES_NO_FIELDS.filter(f => f.key !== 'proposal').map(f => f.status), 'Closed']
+
+export const isStepStatus = (s) => YES_NO_FIELDS.some(f => f.status === s && f.key !== 'proposal')
+
+// Clicking a status button switches these checklist items to Yes
 export const STATUS_SETS = {
   'Proposal Sent': { proposal: true },
   'Follow-up': { proposal: true },
-  'Closed': { proposal: true, payment: true },
+  'Closed': Object.fromEntries(YES_NO_FIELDS.map(f => [f.key, true])),
 }
 
-// When a checklist field is switched, work out the status from it
-export const statusFromChecklist = (current, form) => {
-  if (form.payment === true) return 'Closed'
-  if (current === 'Closed') return form.proposal === true ? 'Proposal Sent' : 'None'
-  if (form.proposal === true) return current === 'Follow-up' ? 'Follow-up' : 'Proposal Sent'
-  return 'None'
+// Switching a checklist item works out the new status:
+// - all 7 items Yes             -> Closed
+// - an item switched to Yes     -> that item's status (e.g. KYC -> "KYC Done")
+// - an item switched to No      -> status of the last item still Yes, or None
+export const statusFromChecklist = (changedKey, value, form) => {
+  if (YES_NO_FIELDS.every(f => form[f.key] === true)) return 'Closed'
+  if (value === true) return YES_NO_FIELDS.find(f => f.key === changedKey).status
+  const lastYes = [...YES_NO_FIELDS].reverse().find(f => form[f.key] === true)
+  return lastYes ? lastYes.status : 'None'
 }
-
-// Yes/No fields, in form order
-export const YES_NO_FIELDS = [
-  { key: 'proposal', label: 'Proposal' },
-  { key: 'payment', label: 'Payment' },
-  { key: 'lease_agreement', label: 'Lease Agreement' },
-  { key: 'access_rp', label: 'AccessRP Registered' },
-  { key: 'kyc', label: 'KYC' },
-  { key: 'license', label: 'License' },
-  { key: 'tawtheeq', label: 'Tawtheeq' },
-]
 
 export const EMPTY_CLIENT = {
   name: '', phone: '', email: '', source: '', service: '',
