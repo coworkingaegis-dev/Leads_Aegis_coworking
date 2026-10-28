@@ -1,9 +1,21 @@
 export const SOURCES = ['Web', 'Walk-in', 'WhatsApp', 'Email', 'Referral']
 export const SERVICES = ['Dedicated Desk', 'Flexi Desk', 'Private Office', 'Virtual Office', 'Meeting Room', 'Day Pass']
-// All statuses (shown when editing)
-export const STATUSES = ['None', 'Proposal Sent', 'Follow-up', 'Pending Payment', 'Closed', 'Lost']
-// Statuses shown in the New Client form
-export const NEW_STATUSES = ['None', 'Proposal Sent', 'Follow-up', 'Closed']
+export const STATUSES = ['None', 'Proposal Sent', 'Follow-up', 'Closed']
+
+// When a status is clicked, these checklist fields switch to Yes
+export const STATUS_SETS = {
+  'Proposal Sent': { proposal: true },
+  'Follow-up': { proposal: true },
+  'Closed': { proposal: true, payment: true },
+}
+
+// When a checklist field is switched, work out the status from it
+export const statusFromChecklist = (current, form) => {
+  if (form.payment === true) return 'Closed'
+  if (current === 'Closed') return form.proposal === true ? 'Proposal Sent' : 'None'
+  if (form.proposal === true) return current === 'Follow-up' ? 'Follow-up' : 'Proposal Sent'
+  return 'None'
+}
 
 // Yes/No fields, in form order
 export const YES_NO_FIELDS = [
@@ -33,4 +45,7 @@ export const calcReferralAmount = (value, pct) => {
 export const aed = (n) =>
   n == null || n === '' ? '—' : 'AED ' + Number(n).toLocaleString('en-AE', { maximumFractionDigits: 2 })
 
-export const isReferral = (c) => c.source === 'Referral' || (c.referral_name && c.referral_name.trim() !== '')
+// Referral tab: came through a referral AND is closed
+export const isReferral = (c) =>
+  c.status === 'Closed' &&
+  (c.source === 'Referral' || (c.referral_name && c.referral_name.trim() !== ''))
