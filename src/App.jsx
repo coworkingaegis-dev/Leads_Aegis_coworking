@@ -85,7 +85,7 @@ function CRM({ user }) {
   ), [clients, editing])
 
   // Which form to open: new / Clients-tab edit / Closed-tab edit
-  const formMode = !editing?.id ? 'new' : (tab === 'closed' || tab === 'referral') ? 'closed' : 'lead'
+  const formMode = !editing?.id ? 'new' : tab === 'closed' ? 'closed' : tab === 'referral' ? 'referral' : 'lead'
 
   const save = async (payload) => {
     const q = editing?.id
