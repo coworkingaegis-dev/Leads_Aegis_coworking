@@ -10,12 +10,12 @@ export const STATUSES = ['None', 'Follow-up', 'Closed', 'Lost']
 export const ALL_DONE = 'Onboarding Complete'
 // Order: Paid, KYC, Lease, License, AccessRP, Tawtheeq, Onboarding Complete
 export const YES_NO_FIELDS = [
-  { key: 'payment', label: 'Payment', status: 'Paid' },
-  { key: 'kyc', label: 'KYC', status: 'KYC Done' },
-  { key: 'lease_agreement', label: 'Lease Agreement', status: 'Lease Signed' },
-  { key: 'license', label: 'License', status: 'License Done' },
-  { key: 'access_rp', label: 'AccessRP Registered', status: 'AccessRP Registered' },
-  { key: 'tawtheeq', label: 'Tawtheeq', status: 'Tawtheeq Done' },
+    { key: 'payment', label: 'Payment', status: 'Paid' },
+  { key: 'kyc', label: 'KYC', status: 'KYC' },
+  { key: 'lease_agreement', label: 'Lease Agreement', status: 'Lease' },
+  { key: 'license', label: 'License', status: 'Licensed' },
+  { key: 'access_rp', label: 'AccessRP Registered', status: 'AccessRP' },
+  { key: 'tawtheeq', label: 'Tawtheeq', status: 'Tawtheeq' },
   { key: 'onboarding_complete', label: 'Onboarding Complete', status: ALL_DONE },
 ]
 export const CLOSED_STATUSES = ['None', ...YES_NO_FIELDS.map(f => f.status)]
