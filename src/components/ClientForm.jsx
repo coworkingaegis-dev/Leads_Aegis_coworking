@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SOURCES, SERVICES, STATUSES, STATUS_SETS, statusFromChecklist, YES_NO_FIELDS, EMPTY_CLIENT, calcReferralAmount, aed } from '../constants'
+import { SOURCES, SERVICES, STATUSES, STATUS_SETS, statusFromChecklist, isStepStatus, YES_NO_FIELDS, EMPTY_CLIENT, calcReferralAmount, aed } from '../constants'
 import { YesNoToggle } from './YesNo'
 
 export default function ClientForm({ initial, onSave, onClose }) {
@@ -12,12 +12,15 @@ export default function ClientForm({ initial, onSave, onClose }) {
   // Click a status -> matching checklist items become Yes
   const pickStatus = (s) => setForm(f => ({ ...f, status: s, ...(STATUS_SETS[s] || {}) }))
 
-  // Switch Proposal / Payment -> status updates to match
+  // Switch any checklist item -> status updates to match (e.g. KYC Yes -> "KYC Done")
   const setCheck = (k, v) => setForm(f => {
     const next = { ...f, [k]: v }
-    if (k === 'proposal' || k === 'payment') next.status = statusFromChecklist(f.status, next)
+    next.status = statusFromChecklist(k, v, next)
     return next
   })
+
+  // Show the current step status (e.g. "KYC Done") as an extra highlighted button
+  const statusButtons = isStepStatus(form.status) ? [...STATUSES.slice(0, -1), form.status, 'Closed'] : STATUSES
 
   const amount = calcReferralAmount(form.deal_value, form.referral_percent)
 
@@ -32,16 +35,14 @@ export default function ClientForm({ initial, onSave, onClose }) {
       source: form.source || null,
       service: form.service || null,
       status: form.status || 'None',
-      proposal: form.proposal,
-      payment: form.payment,
     }
+    YES_NO_FIELDS.forEach(f => { payload[f.key] = form[f.key] })
 
     if (!isNew) {
       payload.referral_name = form.referral_name.trim() || null
       payload.deal_value = form.deal_value === '' ? null : Number(form.deal_value)
       payload.referral_percent = form.referral_percent === '' ? null : Number(form.referral_percent)
       payload.notes = form.notes.trim() || null
-      YES_NO_FIELDS.forEach(f => { payload[f.key] = form[f.key] })
     }
 
     const err = await onSave(payload)
@@ -79,7 +80,7 @@ export default function ClientForm({ initial, onSave, onClose }) {
           <section>
             <h3>Status</h3>
             <div className="status-picker">
-              {STATUSES.map(s => (
+              {statusButtons.map(s => (
                 <button type="button" key={s}
                   className={`status-chip ${slug(s)} ${form.status === s ? 'active' : ''}`}
                   onClick={() => pickStatus(s)}>{s}</button>
