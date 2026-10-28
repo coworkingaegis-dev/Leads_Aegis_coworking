@@ -36,7 +36,8 @@ export const closedLabel = (c) => c.closed_status || 'None'
 
 // Status shown on the Referral tab
 export const REFERRAL_STATUSES = ['Payment Paid', 'Payment Unpaid']
-export const paymentLabel = (c) => (c.payment === true ? 'Payment Paid' : 'Payment Unpaid')
+// Separate from the Closed Client Status "Payment" item
+export const paymentLabel = (c) => (c.referral_paid === true ? 'Payment Paid' : 'Payment Unpaid')
 
 // Desk numbers 3812-A-001 … 3812-A-3000
 export const DESKS = Array.from({ length: 3000 }, (_, i) => `3812-A-${String(i + 1).padStart(3, '0')}`)
@@ -50,7 +51,7 @@ export const EMPTY_CLIENT = () => ({
   kyc: null, license: null, tawtheeq: null, onboarding_complete: null,
   desk_number: '', payment_plan: '', lease_amount: '',
   deal_value: '', referral_name: '', referral_percent: '',
-  status: 'None', closed_status: null, notes: '',
+  status: 'None', closed_status: null, referral_paid: null, notes: '',
 })
 
 export const calcReferralAmount = (value, pct) => {
