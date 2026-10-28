@@ -13,13 +13,13 @@ export const STATUS_SETS = {
 
 // Closed Client Status: Yes/No items, with the closed status each one gives
 export const YES_NO_FIELDS = [
+  { key: 'proposal', label: 'Proposal', status: 'Proposal Sent' },
   { key: 'payment', label: 'Payment', status: 'Payment Done' },
   { key: 'lease_agreement', label: 'Lease Agreement', status: 'Lease Signed' },
   { key: 'access_rp', label: 'AccessRP Registered', status: 'AccessRP Registered' },
   { key: 'kyc', label: 'KYC', status: 'KYC Done' },
   { key: 'license', label: 'License', status: 'License Done' },
   { key: 'tawtheeq', label: 'Tawtheeq', status: 'Tawtheeq Done' },
-  { key: 'desk_allocated', label: 'Desk Allocated', status: 'Desk Allocated' },
 ]
 export const ALL_DONE = 'Onboarding Complete'
 export const CLOSED_STATUSES = ['Closed', ...YES_NO_FIELDS.map(f => f.status), ALL_DONE]
