@@ -10,6 +10,7 @@ export const COLUMNS = {
   clients: [
     { key: 'name', label: 'Name', render: c => <strong>{text(c.name)}</strong> },
     { key: 'phone', label: 'Phone', render: c => text(c.phone) },
+    { key: 'email', label: 'Email', render: c => text(c.email) },
     { key: 'source', label: 'Source', render: c => text(c.source) },
     { key: 'service', label: 'Service', render: c => text(c.service) },
     { key: 'proposal', label: 'Proposal', yn: true },
