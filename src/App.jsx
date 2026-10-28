@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { supabase, supabaseConfigured } from './supabaseClient'
-import { isReferral, aed, ALL_STATUSES } from './constants'
+import { isReferral, aed, STATUSES, CLOSED_STATUSES, closedLabel } from './constants'
 import Login from './components/Login'
 import ClientForm from './components/ClientForm'
 import ClientTable from './components/ClientTable'
@@ -60,10 +60,18 @@ function CRM({ user }) {
     if (!tab) return []
     const q = search.trim().toLowerCase()
     return groups[tab].filter(c =>
-      (tab !== 'clients' || statusFilter === 'All' || c.status === statusFilter) &&
-      (!q || [c.name, c.phone, c.email, c.referral_name, c.service, c.source].some(v => v && v.toLowerCase().includes(q)))
+      (statusFilter === 'All' || (tab === 'clients' ? c.status : closedLabel(c)) === statusFilter) &&
+      (!q || [c.name, c.company_name, c.phone, c.email, c.referral_name, c.service, c.source, c.desk_number].some(v => v && v.toLowerCase().includes(q)))
     )
   }, [groups, tab, search, statusFilter])
+
+  // Desks already given to other clients (shown grey in the desk list)
+  const takenDesks = useMemo(() => new Set(
+    clients.filter(c => c.desk_number && c.id !== editing?.id).map(c => c.desk_number)
+  ), [clients, editing])
+
+  // Which form to open: new / Clients-tab edit / Closed-tab edit
+  const formMode = !editing?.id ? 'new' : (tab === 'closed' || tab === 'referral') ? 'closed' : 'lead'
 
   const save = async (payload) => {
     const q = editing?.id
@@ -77,7 +85,7 @@ function CRM({ user }) {
   }
 
   const remove = async (row) => {
-    if (!confirm(`Delete ${row.name || 'this client'}? This cannot be undone.`)) return
+    if (!confirm(`Delete ${row.company_name || row.name || 'this client'}? This cannot be undone.`)) return
     const { error } = await supabase.from('clients').delete().eq('id', row.id)
     if (error) alert(error.message); else load()
   }
@@ -129,21 +137,19 @@ function CRM({ user }) {
             </nav>
 
             <div className="toolbar">
-              <input className="search" placeholder="Search name, phone, email, referral…" value={search} onChange={e => setSearch(e.target.value)} />
-              {tab === 'clients' && (
-                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                  <option>All</option>{ALL_STATUSES.map(s => <option key={s}>{s}</option>)}
-                </select>
-              )}
+              <input className="search" placeholder="Search company, name, phone, email, desk…" value={search} onChange={e => setSearch(e.target.value)} />
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                <option>All</option>{(tab === 'clients' ? STATUSES : CLOSED_STATUSES).map(s => <option key={s}>{s}</option>)}
+              </select>
             </div>
 
             {loading ? <div className="empty">Loading…</div>
-              : <ClientTable rows={rows} onEdit={setEditing} onDelete={remove} />}
+              : <ClientTable key={tab} tab={tab} rows={rows} onEdit={setEditing} onDelete={remove} />}
           </>
         )}
       </main>
 
-      {editing && <ClientForm initial={editing} onSave={save} onClose={() => setEditing(null)} />}
+      {editing && <ClientForm initial={editing} mode={formMode} takenDesks={takenDesks} onSave={save} onClose={() => setEditing(null)} />}
     </div>
   )
 }
