@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SOURCES, SERVICES, STATUSES, NEW_STATUSES, YES_NO_FIELDS, EMPTY_CLIENT, calcReferralAmount, aed } from '../constants'
+import { SOURCES, SERVICES, STATUSES, STATUS_SETS, statusFromChecklist, YES_NO_FIELDS, EMPTY_CLIENT, calcReferralAmount, aed } from '../constants'
 import { YesNoToggle } from './YesNo'
 
 export default function ClientForm({ initial, onSave, onClose }) {
@@ -9,14 +9,22 @@ export default function ClientForm({ initial, onSave, onClose }) {
   const [error, setError] = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
+  // Click a status -> matching checklist items become Yes
+  const pickStatus = (s) => setForm(f => ({ ...f, status: s, ...(STATUS_SETS[s] || {}) }))
+
+  // Switch Proposal / Payment -> status updates to match
+  const setCheck = (k, v) => setForm(f => {
+    const next = { ...f, [k]: v }
+    if (k === 'proposal' || k === 'payment') next.status = statusFromChecklist(f.status, next)
+    return next
+  })
+
   const amount = calcReferralAmount(form.deal_value, form.referral_percent)
-  const statusOptions = isNew ? NEW_STATUSES : STATUSES
 
   const submit = async (e) => {
     e.preventDefault()
     setBusy(true); setError('')
 
-    // Basic fields (used by both New and Edit)
     const payload = {
       name: form.name.trim() || null,
       phone: form.phone.trim() || null,
@@ -24,9 +32,10 @@ export default function ClientForm({ initial, onSave, onClose }) {
       source: form.source || null,
       service: form.service || null,
       status: form.status || 'None',
+      proposal: form.proposal,
+      payment: form.payment,
     }
 
-    // Extra fields only when editing
     if (!isNew) {
       payload.referral_name = form.referral_name.trim() || null
       payload.deal_value = form.deal_value === '' ? null : Number(form.deal_value)
@@ -67,6 +76,17 @@ export default function ClientForm({ initial, onSave, onClose }) {
             </div>
           </section>
 
+          <section>
+            <h3>Status</h3>
+            <div className="status-picker">
+              {STATUSES.map(s => (
+                <button type="button" key={s}
+                  className={`status-chip ${slug(s)} ${form.status === s ? 'active' : ''}`}
+                  onClick={() => pickStatus(s)}>{s}</button>
+              ))}
+            </div>
+          </section>
+
           {!isNew && (
             <>
               <section>
@@ -75,7 +95,7 @@ export default function ClientForm({ initial, onSave, onClose }) {
                   {YES_NO_FIELDS.map(f => (
                     <div className="check-row" key={f.key}>
                       <span>{f.label}</span>
-                      <YesNoToggle value={form[f.key]} onChange={v => set(f.key, v)} />
+                      <YesNoToggle value={form[f.key]} onChange={v => setCheck(f.key, v)} />
                     </div>
                   ))}
                 </div>
@@ -89,23 +109,10 @@ export default function ClientForm({ initial, onSave, onClose }) {
                   <label>Referral fee %<input type="number" min="0" max="100" step="0.01" value={form.referral_percent} onChange={e => set('referral_percent', e.target.value)} /></label>
                   <label>Amount (auto)<input value={aed(amount)} readOnly className="readonly" /></label>
                 </div>
+                <label style={{ marginTop: 12 }}>Notes<textarea rows="2" value={form.notes} onChange={e => set('notes', e.target.value)} /></label>
               </section>
             </>
           )}
-
-          <section>
-            <h3>Status</h3>
-            <div className="status-picker">
-              {statusOptions.map(s => (
-                <button type="button" key={s}
-                  className={`status-chip ${slug(s)} ${form.status === s ? 'active' : ''}`}
-                  onClick={() => set('status', s)}>{s}</button>
-              ))}
-            </div>
-            {!isNew && (
-              <label style={{ marginTop: 12 }}>Notes<textarea rows="2" value={form.notes} onChange={e => set('notes', e.target.value)} /></label>
-            )}
-          </section>
 
           {error && <div className="error">{error}</div>}
         </div>
