@@ -91,6 +91,12 @@ td.actions-col { background: #fff; display: flex; gap: 6px; justify-content: fle
 .status-badge.proposal-sent { background: #efe7fb; color: #6b3fb8; }
 .status-chip.active.none { background: var(--muted); border-color: var(--muted); color: #fff; }
 .status-chip.active.proposal-sent { background: #6b3fb8; border-color: #6b3fb8; color: #fff; }
+/* Step statuses: Payment Done, Lease Signed, AccessRP Registered, KYC Done, License Done, Tawtheeq Done */
+.status-badge.step { background: #e2f4f4; color: #0f7b7b; }
+.status-chip.active.payment-done, .status-chip.active.lease-signed, .status-chip.active.accessrp-registered,
+.status-chip.active.kyc-done, .status-chip.active.license-done, .status-chip.active.tawtheeq-done {
+  background: #0f7b7b; border-color: #0f7b7b; color: #fff;
+}
 
 /* Modal */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(15,31,61,.45); display: grid; place-items: center; padding: 16px; z-index: 50; }
