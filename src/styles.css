@@ -178,3 +178,25 @@ select option:disabled { color: #b0b6c3; background: #f2f3f6; }
 .status-badge.payment-unpaid { background: var(--red-bg); color: var(--red); }
 .status-chip.active.payment-paid { background: var(--green); border-color: var(--green); color: #fff; }
 .status-chip.active.payment-unpaid { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* Status side panel */
+.tab-layout { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
+.tab-main { min-width: 0; }
+.status-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; position: sticky; top: 16px; }
+.status-panel h4 { margin: 2px 6px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.status-row { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 0; background: none; padding: 9px 10px; border-radius: 8px; text-align: left; color: var(--text); font-weight: 500; }
+.status-row:hover { background: #f3f4f7; }
+.status-row.active { background: var(--navy); color: #fff; }
+.status-row.active .status-count { background: rgba(255,255,255,.18); color: #fff; }
+.status-count { background: #eef0f4; border-radius: 20px; padding: 1px 9px; font-size: 12px; font-weight: 600; min-width: 28px; text-align: center; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; background: #b0b6c3; vertical-align: middle; }
+.dot.follow-up { background: var(--blue); }
+.dot.closed, .dot.onboarding-complete, .dot.payment-paid { background: var(--green); }
+.dot.lost, .dot.payment-unpaid { background: var(--red); }
+.dot.payment-done, .dot.lease-signed, .dot.accessrp-registered, .dot.kyc-done, .dot.license-done, .dot.tawtheeq-done { background: #0f7b7b; }
+@media (max-width: 860px) {
+  .tab-layout { grid-template-columns: 1fr; }
+  .status-panel { position: static; display: flex; flex-wrap: wrap; gap: 6px; }
+  .status-panel h4 { width: 100%; }
+  .status-row { width: auto; border: 1px solid var(--border); }
+}
