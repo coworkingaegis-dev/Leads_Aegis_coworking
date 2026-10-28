@@ -1,6 +1,9 @@
-export const SOURCES = ['Web', 'Walk-in', 'WhatsApp', 'Referral']
+export const SOURCES = ['Web', 'Walk-in', 'WhatsApp', 'Email', 'Referral']
 export const SERVICES = ['Dedicated Desk', 'Flexi Desk', 'Private Office', 'Virtual Office', 'Meeting Room', 'Day Pass']
-export const STATUSES = ['Follow-up', 'Pending Payment', 'Closed', 'Lost']
+// All statuses (shown when editing)
+export const STATUSES = ['None', 'Proposal Sent', 'Follow-up', 'Pending Payment', 'Closed', 'Lost']
+// Statuses shown in the New Client form
+export const NEW_STATUSES = ['None', 'Proposal Sent', 'Follow-up', 'Closed']
 
 // Yes/No fields, in form order
 export const YES_NO_FIELDS = [
@@ -14,11 +17,11 @@ export const YES_NO_FIELDS = [
 ]
 
 export const EMPTY_CLIENT = {
-  name: '', phone: '', source: '', service: '',
+  name: '', phone: '', email: '', source: '', service: '',
   proposal: null, payment: null, lease_agreement: null, access_rp: null,
   kyc: null, license: null, tawtheeq: null,
   deal_value: '', referral_name: '', referral_percent: '',
-  status: 'Follow-up', notes: '',
+  status: 'None', notes: '',
 }
 
 export const calcReferralAmount = (value, pct) => {
