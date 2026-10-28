@@ -66,8 +66,13 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
       payload.referral_percent = num(form.referral_percent)
       payload.referral_paid = form.referral_paid
       payload.notes = t(form.notes)
-    } else {
+        } else {
       payload.status = form.status || 'None'
+      if (form.source === 'Referral') {
+        payload.referral_name = t(form.referral_name)
+        payload.deal_value = num(form.deal_value)
+        payload.referral_percent = num(form.referral_percent)
+      }
     }
 
     const err = await onSave(payload)
@@ -162,8 +167,8 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
             </section>
           )}
 
-          {/* Referral + notes: Closed and Referral tabs */}
-          {(isClosedMode || isReferralMode) && (
+                   {/* Referral: Closed and Referral tabs, and New / Clients edit when Source = Referral */}
+          {(isClosedMode || isReferralMode || form.source === 'Referral') && (
             <section>
               <h3>Referral</h3>
               <div className="grid2">
@@ -172,7 +177,9 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
                 <label>Referral fee %<input type="number" min="0" max="100" step="0.01" value={form.referral_percent} onChange={e => set('referral_percent', e.target.value)} /></label>
                 <label>Amount (auto)<input value={aed(amount)} readOnly className="readonly" /></label>
               </div>
-              <label style={{ marginTop: 12 }}>Notes<textarea rows="2" value={form.notes} onChange={e => set('notes', e.target.value)} /></label>
+                           {(isClosedMode || isReferralMode) && (
+                <label style={{ marginTop: 12 }}>Notes<textarea rows="2" value={form.notes} onChange={e => set('notes', e.target.value)} /></label>
+              )}
             </section>
           )}
 
