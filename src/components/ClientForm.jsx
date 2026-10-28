@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  SOURCES, SERVICES, STATUSES, STATUS_SETS, PAYMENT_PLANS, DESKS, YES_NO_FIELDS,
+  SOURCES, SERVICES, STATUSES, PAYMENT_PLANS, DESKS, YES_NO_FIELDS,
   EMPTY_CLIENT, closedStatusFrom, closedLabel, calcReferralAmount, aed,
 } from '../constants'
 import { YesNoToggle } from './YesNo'
@@ -20,7 +20,7 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
   const isClosedMode = mode === 'closed'
   const locked = mode === 'lead'          // Closed Client Status greyed out
 
-  const pickStatus = (s) => setForm(f => ({ ...f, status: s, ...(STATUS_SETS[s] || {}) }))
+  const pickStatus = (s) => set('status', s)
 
   const setCheck = (k, v) => setForm(f => {
     const next = { ...f, [k]: v }
@@ -60,7 +60,6 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
       payload.notes = t(form.notes)
     } else {
       payload.status = form.status || 'None'
-      payload.proposal = form.proposal
     }
 
     const err = await onSave(payload)
@@ -139,8 +138,8 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
                     <select value={form.desk_number} onChange={e => pickDesk(e.target.value)}>
                       <option value="">—</option>
                       {DESKS.map(d => {
-                        const taken = takenDesks.has(d)
-                        return <option key={d} value={d} disabled={taken}>{d}{taken ? ' (allocated)' : ''}</option>
+                        const owner = takenDesks.get(d)
+                        return <option key={d} value={d} disabled={!!owner}>{d}{owner ? ` — ${owner} (allocated)` : ''}</option>
                       })}
                     </select>
                   </label>
