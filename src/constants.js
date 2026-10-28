@@ -9,7 +9,7 @@ export const STATUSES = ['None', 'Follow-up', 'Closed', 'Lost']
 // (Onboarding Complete is last so it sits below License in the 2-column grid)
 export const ALL_DONE = 'Onboarding Complete'
 export const YES_NO_FIELDS = [
-  { key: 'proposal', label: 'Proposal', status: 'Proposal Sent' },
+ 
   { key: 'payment', label: 'Payment', status: 'Payment Done' },
   { key: 'lease_agreement', label: 'Lease Agreement', status: 'Lease Signed' },
   { key: 'access_rp', label: 'AccessRP Registered', status: 'AccessRP Registered' },
