@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { slug } from './ClientForm'
-import { closedLabel, formatDate } from '../constants'
+import { closedLabel, paymentLabel, formatDate } from '../constants'
 
 const Badge = ({ value, step }) => value
   ? <span className={`status-badge ${slug(value)} ${step ? 'step' : ''}`}>{value}</span>
@@ -17,7 +17,9 @@ const columnsFor = (tab) => [
   { key: 'service', label: 'Service', value: c => c.service, render: c => text(c.service) },
   tab === 'clients'
     ? { key: 'status', label: 'Status', value: c => c.status, render: c => <Badge value={c.status} /> }
-    : { key: 'closed_status', label: 'Status', value: closedLabel, render: c => <Badge value={closedLabel(c)} step={!!c.closed_status} /> },
+    : tab === 'referral'
+      ? { key: 'payment_status', label: 'Status', value: paymentLabel, render: c => <Badge value={paymentLabel(c)} /> }
+      : { key: 'closed_status', label: 'Status', value: closedLabel, render: c => <Badge value={closedLabel(c)} step={!!c.closed_status} /> },
 ]
 
 export default function ClientTable({ tab, rows, sort, onSort, onEdit, onDelete }) {
