@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { supabase, supabaseConfigured } from './supabaseClient'
-import { isReferral, aed, STATUSES } from './constants'
+import { isReferral, aed, ALL_STATUSES } from './constants'
 import Login from './components/Login'
 import ClientForm from './components/ClientForm'
 import ClientTable from './components/ClientTable'
@@ -132,7 +132,7 @@ function CRM({ user }) {
               <input className="search" placeholder="Search name, phone, email, referral…" value={search} onChange={e => setSearch(e.target.value)} />
               {tab === 'clients' && (
                 <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                  <option>All</option>{STATUSES.map(s => <option key={s}>{s}</option>)}
+                  <option>All</option>{ALL_STATUSES.map(s => <option key={s}>{s}</option>)}
                 </select>
               )}
             </div>
