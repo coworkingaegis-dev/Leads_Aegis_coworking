@@ -24,7 +24,6 @@ export const isStepStatus = (s) => YES_NO_FIELDS.some(f => f.status === s && f.k
 export const STATUS_SETS = {
   'Proposal Sent': { proposal: true },
   'Follow-up': { proposal: true },
-  'Closed': Object.fromEntries(YES_NO_FIELDS.map(f => [f.key, true])),
 }
 
 // Switching a checklist item works out the new status:
