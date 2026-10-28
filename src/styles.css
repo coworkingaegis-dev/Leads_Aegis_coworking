@@ -87,6 +87,10 @@ td.actions-col { background: #fff; display: flex; gap: 6px; justify-content: fle
 .status-badge.lost { background: var(--red-bg); color: var(--red); }
 .status-badge.pending-payment { background: var(--amber-bg); color: var(--amber); }
 .status-badge.follow-up { background: var(--blue-bg); color: var(--blue); }
+.status-badge.none { background: #eef0f4; color: var(--muted); }
+.status-badge.proposal-sent { background: #efe7fb; color: #6b3fb8; }
+.status-chip.active.none { background: var(--muted); border-color: var(--muted); color: #fff; }
+.status-chip.active.proposal-sent { background: #6b3fb8; border-color: #6b3fb8; color: #fff; }
 
 /* Modal */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(15,31,61,.45); display: grid; place-items: center; padding: 16px; z-index: 50; }
