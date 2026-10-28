@@ -6,7 +6,7 @@ import { isReferral, aed, STATUSES, CLOSED_STATUSES, REFERRAL_STATUSES, SOURCES,
 const statusOf = (tab, c) => tab === 'clients' ? c.status : tab === 'referral' ? paymentLabel(c) : closedLabel(c)
 const statusOptions = (tab) => tab === 'clients' ? STATUSES : tab === 'referral' ? REFERRAL_STATUSES : CLOSED_STATUSES
 import Login from './components/Login'
-import ClientForm from './components/ClientForm'
+import ClientForm, { slug } from './components/ClientForm'
 import ClientTable from './components/ClientTable'
 
 const TABS = [
@@ -65,18 +65,30 @@ function CRM({ user }) {
     referral: clients.filter(isReferral),
   }), [clients])
 
-  const rows = useMemo(() => {
+  // Clients on this tab after search / source / service / date (but not status)
+  const baseRows = useMemo(() => {
     if (!tab) return []
     const q = search.trim().toLowerCase()
     return groups[tab].filter(c =>
-      (statusFilter === 'All' || statusOf(tab, c) === statusFilter) &&
       (sourceFilter === 'All' || c.source === sourceFilter) &&
       (serviceFilter === 'All' || c.service === serviceFilter) &&
       (!dateFrom || (c.client_date && c.client_date >= dateFrom)) &&
       (!dateTo || (c.client_date && c.client_date <= dateTo)) &&
       (!q || [c.name, c.company_name, c.phone, c.email, c.referral_name, c.service, c.source, c.desk_number].some(v => v && v.toLowerCase().includes(q)))
     )
-  }, [groups, tab, search, statusFilter, sourceFilter, serviceFilter, dateFrom, dateTo])
+  }, [groups, tab, search, sourceFilter, serviceFilter, dateFrom, dateTo])
+
+  // Apply the status picked in the side panel
+  const rows = useMemo(() =>
+    statusFilter === 'All' ? baseRows : baseRows.filter(c => statusOf(tab, c) === statusFilter)
+  , [baseRows, statusFilter, tab])
+
+  // Count per status for the side panel
+  const statusCounts = useMemo(() => {
+    const counts = {}
+    baseRows.forEach(c => { const s = statusOf(tab, c); counts[s] = (counts[s] || 0) + 1 })
+    return counts
+  }, [baseRows, tab])
 
   // Desks already given to other clients (shown grey in the desk list)
   const takenDesks = useMemo(() => new Map(
@@ -179,11 +191,6 @@ function CRM({ user }) {
             </div>
 
             <div className="toolbar filters">
-              <label className="tool">Status
-                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                  <option>All</option>{statusOptions(tab).map(s => <option key={s}>{s}</option>)}
-                </select>
-              </label>
               <label className="tool">Source
                 <select value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}>
                   <option>All</option>{SOURCES.map(s => <option key={s}>{s}</option>)}
@@ -204,8 +211,26 @@ function CRM({ user }) {
               <span className="muted result-count">{rows.length} {rows.length === 1 ? 'client' : 'clients'}</span>
             </div>
 
-            {loading ? <div className="empty">Loading…</div>
-              : <ClientTable tab={tab} rows={rows} sort={sort} onSort={setSort} onEdit={setEditing} onDelete={remove} />}
+            <div className="tab-layout">
+              {/* Status side panel */}
+              <aside className="status-panel">
+                <h4>Status</h4>
+                <button className={`status-row ${statusFilter === 'All' ? 'active' : ''}`} onClick={() => setStatusFilter('All')}>
+                  <span>All</span><span className="status-count">{baseRows.length}</span>
+                </button>
+                {statusOptions(tab).map(s => (
+                  <button key={s} className={`status-row ${statusFilter === s ? 'active' : ''}`} onClick={() => setStatusFilter(s)}>
+                    <span><span className={`dot ${slug(s)}`} />{s}</span>
+                    <span className="status-count">{statusCounts[s] || 0}</span>
+                  </button>
+                ))}
+              </aside>
+
+              <div className="tab-main">
+                {loading ? <div className="empty">Loading…</div>
+                  : <ClientTable tab={tab} rows={rows} sort={sort} onSort={setSort} onEdit={setEditing} onDelete={remove} />}
+              </div>
+            </div>
           </>
         )}
       </main>
