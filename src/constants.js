@@ -8,13 +8,13 @@ export const STATUSES = ['None', 'Follow-up', 'Closed', 'Lost']
 // Closed Client Status: Yes/No items, with the closed status each one gives
 // (Onboarding Complete is last so it sits below License in the 2-column grid)
 export const ALL_DONE = 'Onboarding Complete'
+// Order: Paid, KYC, Lease, License, AccessRP, Tawtheeq, Onboarding Complete
 export const YES_NO_FIELDS = [
- 
-  { key: 'payment', label: 'Payment', status: 'Payment Done' },
-  { key: 'lease_agreement', label: 'Lease Agreement', status: 'Lease Signed' },
-  { key: 'access_rp', label: 'AccessRP Registered', status: 'AccessRP Registered' },
+  { key: 'payment', label: 'Payment', status: 'Paid' },
   { key: 'kyc', label: 'KYC', status: 'KYC Done' },
+  { key: 'lease_agreement', label: 'Lease Agreement', status: 'Lease Signed' },
   { key: 'license', label: 'License', status: 'License Done' },
+  { key: 'access_rp', label: 'AccessRP Registered', status: 'AccessRP Registered' },
   { key: 'tawtheeq', label: 'Tawtheeq', status: 'Tawtheeq Done' },
   { key: 'onboarding_complete', label: 'Onboarding Complete', status: ALL_DONE },
 ]
