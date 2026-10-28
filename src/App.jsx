@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { supabase, supabaseConfigured } from './supabaseClient'
-import { isReferral, aed, STATUSES, CLOSED_STATUSES, SOURCES, SERVICES, closedLabel } from './constants'
+import { isReferral, aed, STATUSES, CLOSED_STATUSES, REFERRAL_STATUSES, SOURCES, SERVICES, closedLabel, paymentLabel } from './constants'
+
+// Status shown / filtered on each tab
+const statusOf = (tab, c) => tab === 'clients' ? c.status : tab === 'referral' ? paymentLabel(c) : closedLabel(c)
+const statusOptions = (tab) => tab === 'clients' ? STATUSES : tab === 'referral' ? REFERRAL_STATUSES : CLOSED_STATUSES
 import Login from './components/Login'
 import ClientForm from './components/ClientForm'
 import ClientTable from './components/ClientTable'
@@ -65,7 +69,7 @@ function CRM({ user }) {
     if (!tab) return []
     const q = search.trim().toLowerCase()
     return groups[tab].filter(c =>
-      (statusFilter === 'All' || (tab === 'clients' ? c.status : closedLabel(c)) === statusFilter) &&
+      (statusFilter === 'All' || statusOf(tab, c) === statusFilter) &&
       (sourceFilter === 'All' || c.source === sourceFilter) &&
       (serviceFilter === 'All' || c.service === serviceFilter) &&
       (!dateFrom || (c.client_date && c.client_date >= dateFrom)) &&
@@ -109,7 +113,7 @@ function CRM({ user }) {
   const filtersOn = search || statusFilter !== 'All' || sourceFilter !== 'All' || serviceFilter !== 'All' || dateFrom || dateTo
 
   // "Sort by" dropdown choices
-  const statusKey = tab === 'clients' ? 'status' : 'closed_status'
+  const statusKey = tab === 'clients' ? 'status' : tab === 'referral' ? 'payment_status' : 'closed_status'
   const SORT_OPTIONS = [
     ['client_date:desc', 'Newest first'],
     ['client_date:asc', 'Oldest first'],
@@ -177,7 +181,7 @@ function CRM({ user }) {
             <div className="toolbar filters">
               <label className="tool">Status
                 <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                  <option>All</option>{(tab === 'clients' ? STATUSES : CLOSED_STATUSES).map(s => <option key={s}>{s}</option>)}
+                  <option>All</option>{statusOptions(tab).map(s => <option key={s}>{s}</option>)}
                 </select>
               </label>
               <label className="tool">Source
