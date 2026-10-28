@@ -24,19 +24,11 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
 
   const setCheck = (k, v) => setForm(f => {
     const next = { ...f, [k]: v }
-    if (k === 'desk_allocated' && v !== true) next.desk_number = ''
     next.closed_status = closedStatusFrom(k, v, next)
     return next
   })
 
-  const pickDesk = (d) => setForm(f => {
-    const next = { ...f, desk_number: d }
-    if (d && f.desk_allocated !== true) {
-      next.desk_allocated = true
-      next.closed_status = closedStatusFrom('desk_allocated', true, next)
-    }
-    return next
-  })
+  const pickDesk = (d) => set('desk_number', d)
 
   const amount = calcReferralAmount(form.deal_value, form.referral_percent)
 
