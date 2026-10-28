@@ -176,3 +176,5 @@ select option:disabled { color: #b0b6c3; background: #f2f3f6; }
 /* Referral payment status */
 .status-badge.payment-paid { background: var(--green-bg); color: var(--green); }
 .status-badge.payment-unpaid { background: var(--red-bg); color: var(--red); }
+.status-chip.active.payment-paid { background: var(--green); border-color: var(--green); color: #fff; }
+.status-chip.active.payment-unpaid { background: var(--red); border-color: var(--red); color: #fff; }
