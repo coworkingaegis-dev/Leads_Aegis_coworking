@@ -1,67 +1,98 @@
 import { useState } from 'react'
-import { SOURCES, SERVICES, STATUSES, STATUS_SETS, statusFromChecklist, isStepStatus, YES_NO_FIELDS, EMPTY_CLIENT, calcReferralAmount, aed } from '../constants'
+import {
+  SOURCES, SERVICES, STATUSES, STATUS_SETS, PAYMENT_PLANS, DESKS, YES_NO_FIELDS,
+  EMPTY_CLIENT, closedStatusFrom, closedLabel, calcReferralAmount, aed,
+} from '../constants'
 import { YesNoToggle } from './YesNo'
 
-export default function ClientForm({ initial, onSave, onClose }) {
-  const isNew = !initial?.id
-  const [form, setForm] = useState({ ...EMPTY_CLIENT, ...cleanNulls(initial) })
+/*
+  mode:
+   'new'    -> New client: basic details + main status
+   'lead'   -> Edit from Clients tab: basic details + main status; Closed Client Status is grey (read-only)
+   'closed' -> Edit from Closed / Referral tab: basic details + Closed Client Status editable; main status hidden
+*/
+export default function ClientForm({ initial, mode, takenDesks, onSave, onClose }) {
+  const [form, setForm] = useState({ ...EMPTY_CLIENT(), ...cleanNulls(initial) })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  // Click a status -> matching checklist items become Yes
+  const isClosedMode = mode === 'closed'
+  const locked = mode === 'lead'          // Closed Client Status greyed out
+
   const pickStatus = (s) => setForm(f => ({ ...f, status: s, ...(STATUS_SETS[s] || {}) }))
 
-  // Switch any checklist item -> status updates to match (e.g. KYC Yes -> "KYC Done")
   const setCheck = (k, v) => setForm(f => {
     const next = { ...f, [k]: v }
-    next.status = statusFromChecklist(k, v, next)
+    if (k === 'desk_allocated' && v !== true) next.desk_number = ''
+    next.closed_status = closedStatusFrom(k, v, next)
     return next
   })
 
-  // Show the current step status (e.g. "KYC Done") as an extra highlighted button
-  const statusButtons = isStepStatus(form.status) ? [...STATUSES.slice(0, -1), form.status, 'Closed'] : STATUSES
+  const pickDesk = (d) => setForm(f => {
+    const next = { ...f, desk_number: d }
+    if (d && f.desk_allocated !== true) {
+      next.desk_allocated = true
+      next.closed_status = closedStatusFrom('desk_allocated', true, next)
+    }
+    return next
+  })
 
   const amount = calcReferralAmount(form.deal_value, form.referral_percent)
 
   const submit = async (e) => {
     e.preventDefault()
     setBusy(true); setError('')
+    const t = (v) => (v || '').trim() || null
+    const num = (v) => (v === '' || v == null ? null : Number(v))
 
     const payload = {
-      name: form.name.trim() || null,
-      phone: form.phone.trim() || null,
-      email: form.email.trim() || null,
+      name: t(form.name),
+      company_name: t(form.company_name),
+      phone: t(form.phone),
+      email: t(form.email),
       source: form.source || null,
       service: form.service || null,
-      status: form.status || 'None',
+      client_date: form.client_date || null,
     }
-    YES_NO_FIELDS.forEach(f => { payload[f.key] = form[f.key] })
 
-    if (!isNew) {
-      payload.referral_name = form.referral_name.trim() || null
-      payload.deal_value = form.deal_value === '' ? null : Number(form.deal_value)
-      payload.referral_percent = form.referral_percent === '' ? null : Number(form.referral_percent)
-      payload.notes = form.notes.trim() || null
+    if (isClosedMode) {
+      YES_NO_FIELDS.forEach(f => { payload[f.key] = form[f.key] })
+      payload.closed_status = form.closed_status
+      payload.desk_number = form.desk_number || null
+      payload.payment_plan = form.payment_plan || null
+      payload.lease_amount = num(form.lease_amount)
+      payload.referral_name = t(form.referral_name)
+      payload.deal_value = num(form.deal_value)
+      payload.referral_percent = num(form.referral_percent)
+      payload.notes = t(form.notes)
+    } else {
+      payload.status = form.status || 'None'
+      payload.proposal = form.proposal
     }
 
     const err = await onSave(payload)
-    if (err) { setError(err); setBusy(false) }
+    if (err) {
+      setError(err.includes('clients_desk_number_unique') ? 'That desk is already allocated to another client.' : err)
+      setBusy(false)
+    }
   }
 
   return (
     <div className="modal-backdrop" onMouseDown={onClose}>
       <form className="modal" onSubmit={submit} onMouseDown={e => e.stopPropagation()}>
         <div className="modal-head">
-          <h2>{isNew ? 'New client' : 'Edit client'}</h2>
+          <h2>{mode === 'new' ? 'New client' : isClosedMode ? 'Edit closed client' : 'Edit client'}</h2>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
         <div className="modal-body">
+          {/* Basic details: always editable */}
           <section>
             <h3>Client</h3>
             <div className="grid2">
-              <label>Name<input value={form.name} onChange={e => set('name', e.target.value)} /></label>
+              <label>Individual Name<input value={form.name} onChange={e => set('name', e.target.value)} /></label>
+              <label>Company Name<input value={form.company_name} onChange={e => set('company_name', e.target.value)} /></label>
               <label>Phone number<input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+971…" /></label>
               <label>Email<input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="name@company.com" /></label>
               <label>Source
@@ -74,24 +105,35 @@ export default function ClientForm({ initial, onSave, onClose }) {
                   <option value="">—</option>{SERVICES.map(s => <option key={s}>{s}</option>)}
                 </select>
               </label>
+              <label>Date<input type="date" value={form.client_date} onChange={e => set('client_date', e.target.value)} /></label>
             </div>
           </section>
 
-          <section>
-            <h3>Status</h3>
-            <div className="status-picker">
-              {statusButtons.map(s => (
-                <button type="button" key={s}
-                  className={`status-chip ${slug(s)} ${form.status === s ? 'active' : ''}`}
-                  onClick={() => pickStatus(s)}>{s}</button>
-              ))}
-            </div>
-          </section>
+          {/* Main status: New + Clients tab only */}
+          {!isClosedMode && (
+            <section>
+              <h3>Status</h3>
+              <div className="status-picker">
+                {STATUSES.map(s => (
+                  <button type="button" key={s}
+                    className={`status-chip ${slug(s)} ${form.status === s ? 'active' : ''}`}
+                    onClick={() => pickStatus(s)}>{s}</button>
+                ))}
+              </div>
+            </section>
+          )}
 
-          {!isNew && (
-            <>
-              <section>
-                <h3>Current Status</h3>
+          {/* Closed Client Status: editable in Closed tab, grey in Clients tab, hidden for new */}
+          {mode !== 'new' && (
+            <section className={locked ? 'locked' : ''}>
+              <h3>
+                Closed Client Status
+                <span className={`status-badge step ${slug(closedLabel(form))}`} style={{ marginLeft: 8, textTransform: 'none', letterSpacing: 0 }}>
+                  {closedLabel(form)}
+                </span>
+              </h3>
+              {locked && <p className="lock-note">Edit this from the Closed Clients tab.</p>}
+              <fieldset disabled={locked} className="plain">
                 <div className="checklist">
                   {YES_NO_FIELDS.map(f => (
                     <div className="check-row" key={f.key}>
@@ -100,19 +142,39 @@ export default function ClientForm({ initial, onSave, onClose }) {
                     </div>
                   ))}
                 </div>
-              </section>
-
-              <section>
-                <h3>Referral</h3>
-                <div className="grid2">
-                  <label>Referral name<input value={form.referral_name} onChange={e => set('referral_name', e.target.value)} /></label>
-                  <label>Deal value (AED)<input type="number" min="0" step="0.01" value={form.deal_value} onChange={e => set('deal_value', e.target.value)} /></label>
-                  <label>Referral fee %<input type="number" min="0" max="100" step="0.01" value={form.referral_percent} onChange={e => set('referral_percent', e.target.value)} /></label>
-                  <label>Amount (auto)<input value={aed(amount)} readOnly className="readonly" /></label>
+                <div className="grid2" style={{ marginTop: 14 }}>
+                  <label>Desk Number
+                    <select value={form.desk_number} onChange={e => pickDesk(e.target.value)}>
+                      <option value="">—</option>
+                      {DESKS.map(d => {
+                        const taken = takenDesks.has(d)
+                        return <option key={d} value={d} disabled={taken}>{d}{taken ? ' (allocated)' : ''}</option>
+                      })}
+                    </select>
+                  </label>
+                  <label>Payment Plan
+                    <select value={form.payment_plan} onChange={e => set('payment_plan', e.target.value)}>
+                      <option value="">—</option>{PAYMENT_PLANS.map(p => <option key={p}>{p}</option>)}
+                    </select>
+                  </label>
+                  <label>Lease Amount (AED)<input type="number" min="0" step="0.01" value={form.lease_amount} onChange={e => set('lease_amount', e.target.value)} /></label>
                 </div>
-                <label style={{ marginTop: 12 }}>Notes<textarea rows="2" value={form.notes} onChange={e => set('notes', e.target.value)} /></label>
-              </section>
-            </>
+              </fieldset>
+            </section>
+          )}
+
+          {/* Referral + notes: Closed tab only */}
+          {isClosedMode && (
+            <section>
+              <h3>Referral</h3>
+              <div className="grid2">
+                <label>Referral name<input value={form.referral_name} onChange={e => set('referral_name', e.target.value)} /></label>
+                <label>Deal value (AED)<input type="number" min="0" step="0.01" value={form.deal_value} onChange={e => set('deal_value', e.target.value)} /></label>
+                <label>Referral fee %<input type="number" min="0" max="100" step="0.01" value={form.referral_percent} onChange={e => set('referral_percent', e.target.value)} /></label>
+                <label>Amount (auto)<input value={aed(amount)} readOnly className="readonly" /></label>
+              </div>
+              <label style={{ marginTop: 12 }}>Notes<textarea rows="2" value={form.notes} onChange={e => set('notes', e.target.value)} /></label>
+            </section>
           )}
 
           {error && <div className="error">{error}</div>}
@@ -131,8 +193,10 @@ export const slug = (s) => (s || '').toLowerCase().replace(/[^a-z]+/g, '-')
 
 function cleanNulls(obj = {}) {
   const out = { ...obj }
-  ;['name', 'phone', 'email', 'source', 'service', 'referral_name', 'notes'].forEach(k => { if (out[k] == null) out[k] = '' })
+  ;['name', 'company_name', 'phone', 'email', 'source', 'service', 'referral_name', 'notes',
+    'desk_number', 'payment_plan', 'deal_value', 'referral_percent', 'lease_amount']
+    .forEach(k => { if (out[k] == null) out[k] = '' })
   if (out.status == null) out.status = 'None'
-  ;['deal_value', 'referral_percent'].forEach(k => { if (out[k] == null) out[k] = '' })
+  if (out.client_date == null) delete out.client_date
   return out
 }
