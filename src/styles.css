@@ -291,3 +291,5 @@ h1, h2, .section-title, .kpi-num, .section-total { font-family: var(--font-headi
   .brand-text small, .brand-tag { display: none; }
   .topbar { padding: 10px 16px; }
 }
+
+.dot.kyc, .dot.lease, .dot.licensed, .dot.accessrp, .dot.tawtheeq { background: #0f7b7b; }
