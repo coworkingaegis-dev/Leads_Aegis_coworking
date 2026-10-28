@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { slug } from './ClientForm'
 import { closedLabel, formatDate } from '../constants'
 
@@ -20,9 +20,8 @@ const columnsFor = (tab) => [
     : { key: 'closed_status', label: 'Status', value: closedLabel, render: c => <Badge value={closedLabel(c)} step={!!c.closed_status} /> },
 ]
 
-export default function ClientTable({ tab, rows, onEdit, onDelete }) {
+export default function ClientTable({ tab, rows, sort, onSort, onEdit, onDelete }) {
   const cols = columnsFor(tab)
-  const [sort, setSort] = useState({ key: 'client_date', dir: 'desc' })
 
   const sorted = useMemo(() => {
     const col = cols.find(c => c.key === sort.key) || cols[0]
@@ -37,7 +36,7 @@ export default function ClientTable({ tab, rows, onEdit, onDelete }) {
   }, [rows, sort, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const clickHeader = (key) =>
-    setSort(s => s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' })
+    onSort(s => s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' })
 
   if (!rows.length) return <div className="empty">No clients here yet.</div>
 
