@@ -3,15 +3,11 @@ export const SERVICES = ['Dedicated Desk', 'Flexi Desk', 'Private Office', 'Virt
 export const PAYMENT_PLANS = ['Annual', 'Bi-annual', 'Quarterly', 'Monthly']
 
 // Main status buttons (Clients tab)
-export const STATUSES = ['None', 'Proposal Sent', 'Follow-up', 'Closed']
-
-// Clicking a main status button switches these to Yes
-export const STATUS_SETS = {
-  'Proposal Sent': { proposal: true },
-  'Follow-up': { proposal: true },
-}
+export const STATUSES = ['None', 'Follow-up', 'Closed', 'Lost']
 
 // Closed Client Status: Yes/No items, with the closed status each one gives
+// (Onboarding Complete is last so it sits below License in the 2-column grid)
+export const ALL_DONE = 'Onboarding Complete'
 export const YES_NO_FIELDS = [
   { key: 'proposal', label: 'Proposal', status: 'Proposal Sent' },
   { key: 'payment', label: 'Payment', status: 'Payment Done' },
@@ -20,22 +16,27 @@ export const YES_NO_FIELDS = [
   { key: 'kyc', label: 'KYC', status: 'KYC Done' },
   { key: 'license', label: 'License', status: 'License Done' },
   { key: 'tawtheeq', label: 'Tawtheeq', status: 'Tawtheeq Done' },
+  { key: 'onboarding_complete', label: 'Onboarding Complete', status: ALL_DONE },
 ]
-export const ALL_DONE = 'Onboarding Complete'
-export const CLOSED_STATUSES = ['Closed', ...YES_NO_FIELDS.map(f => f.status), ALL_DONE]
+export const CLOSED_STATUSES = ['None', ...YES_NO_FIELDS.map(f => f.status)]
 
-// Switching a Closed Client Status item works out the closed status:
-// all items Yes -> Onboarding Complete; item set to Yes -> its status;
-// item set to No -> status of the last item still Yes, otherwise nothing.
+// Works out the closed status after switching an item:
+// - Onboarding Complete = Yes      -> "Onboarding Complete" (only when you click it)
+// - an item switched to Yes        -> that item's status (e.g. KYC -> "KYC Done")
+// - an item switched to No         -> status of the last item still Yes, otherwise None
 export const closedStatusFrom = (changedKey, value, form) => {
-  if (YES_NO_FIELDS.every(f => form[f.key] === true)) return ALL_DONE
+  if (form.onboarding_complete === true) return ALL_DONE
   if (value === true) return YES_NO_FIELDS.find(f => f.key === changedKey).status
   const lastYes = [...YES_NO_FIELDS].reverse().find(f => form[f.key] === true)
   return lastYes ? lastYes.status : null
 }
 
-// Status shown for a closed client
-export const closedLabel = (c) => c.closed_status || 'Closed'
+// Status shown for a closed client (None until something is done in the Closed tab)
+export const closedLabel = (c) => c.closed_status || 'None'
+
+// Status shown on the Referral tab
+export const REFERRAL_STATUSES = ['Payment Paid', 'Payment Unpaid']
+export const paymentLabel = (c) => (c.payment === true ? 'Payment Paid' : 'Payment Unpaid')
 
 // Desk numbers 3812-A-001 … 3812-A-3000
 export const DESKS = Array.from({ length: 3000 }, (_, i) => `3812-A-${String(i + 1).padStart(3, '0')}`)
@@ -46,7 +47,7 @@ export const EMPTY_CLIENT = () => ({
   name: '', company_name: '', phone: '', email: '', source: '', service: '',
   client_date: today(),
   proposal: null, payment: null, lease_agreement: null, access_rp: null,
-  kyc: null, license: null, tawtheeq: null, desk_allocated: null,
+  kyc: null, license: null, tawtheeq: null, onboarding_complete: null,
   desk_number: '', payment_plan: '', lease_amount: '',
   deal_value: '', referral_name: '', referral_percent: '',
   status: 'None', closed_status: null, notes: '',
