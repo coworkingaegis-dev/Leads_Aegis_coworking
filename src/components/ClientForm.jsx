@@ -91,7 +91,7 @@ export default function ClientForm({ initial, onSave, onClose }) {
           {!isNew && (
             <>
               <section>
-                <h3>Checklist</h3>
+                <h3>Current Status</h3>
                 <div className="checklist">
                   {YES_NO_FIELDS.map(f => (
                     <div className="check-row" key={f.key}>
