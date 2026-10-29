@@ -40,7 +40,7 @@ export const REFERRAL_STATUSES = ['Payment Paid', 'Payment Unpaid']
 export const paymentLabel = (c) => (c.referral_paid === true ? 'Payment Paid' : 'Payment Unpaid')
 
 // Desk numbers 3812-A-001 … 3812-A-3000
-export const DESKS = Array.from({ length: 3000 }, (_, i) => `3812-A-${String(i + 1).padStart(3, '0')}`)
+export const DESKS = Array.from({ length: 3000 }, (_, i) => `3812-A-D${String(i + 1).padStart(2, '0')}`)
 
 const today = () => new Date().toISOString().slice(0, 10)
 
