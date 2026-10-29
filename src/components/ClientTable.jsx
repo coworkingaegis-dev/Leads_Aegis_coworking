@@ -67,7 +67,10 @@ export default function ClientTable({ tab, rows, sort, onSort, onEdit, onDelete 
             </tr>
           ))}
         </tbody>
-      </table>
+           </table>
+      <div className="table-foot">
+        Total: <strong>{rows.length}</strong> {rows.length === 1 ? 'client' : 'clients'}
+      </div>
     </div>
   )
 }
