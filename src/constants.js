@@ -10,7 +10,7 @@ export const STATUSES = ['None', 'Follow-up', 'Closed', 'Lost']
 export const ALL_DONE = 'Onboarding Complete'
 // Order: Paid, KYC, Lease, License, AccessRP, Tawtheeq, Onboarding Complete
 export const YES_NO_FIELDS = [
-    { key: 'payment', label: 'Payment', status: 'Paid' },
+  { key: 'payment', label: 'Payment', status: 'Paid' },
   { key: 'kyc', label: 'KYC', status: 'KYC' },
   { key: 'lease_agreement', label: 'Lease Agreement', status: 'Lease' },
   { key: 'license', label: 'License', status: 'Licensed' },
@@ -39,13 +39,16 @@ export const REFERRAL_STATUSES = ['Payment Paid', 'Payment Unpaid']
 // Separate from the Closed Client Status "Payment" item
 export const paymentLabel = (c) => (c.referral_paid === true ? 'Payment Paid' : 'Payment Unpaid')
 
-// Desk numbers 3812-A-001 … 3812-A-3000
-// Desk numbers: 46 desks per row, then the next letter starts
-// A-D01 … A-D46, B-D01 … B-D46, C-D01 … (saved as 3812-A-D01 etc.)
-export const DESK_ROWS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-export const DESKS_PER_ROW = 46
-export const DESKS = DESK_ROWS.flatMap(row =>
-  Array.from({ length: DESKS_PER_ROW }, (_, i) => `3812-${row}-D${String(i + 1).padStart(2, '0')}`))
+// Desks and offices in unit 3812 (saved as 3812-A-D01, 3812-Office-1-01 etc.)
+// To add more later: change a count, or add a name to OFFICES.
+const deskRow = (row, count) =>
+  Array.from({ length: count }, (_, i) => `3812-${row}-D${String(i + 1).padStart(2, '0')}`)
+const OFFICES = ['Office-1-01', 'Office-2-01', 'Office-2-02']
+export const DESKS = [
+  ...deskRow('A', 46),   // A-D01 … A-D46
+  ...deskRow('B', 10),   // B-D01 … B-D10
+  ...OFFICES.map(o => `3812-${o}`),
+]
 
 const today = () => new Date().toISOString().slice(0, 10)
 
