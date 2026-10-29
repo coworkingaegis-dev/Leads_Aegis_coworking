@@ -13,7 +13,7 @@ import DeskPicker from './DeskPicker'
    'closed'   -> Edit from Closed tab: basic details + Closed Client Status editable; main status hidden
    'referral' -> Edit from Referral tab: basic details + referral details + Payment Paid / Unpaid (separate)
 */
-export default function ClientForm({ initial, mode, takenDesks, onSave, onClose }) {
+export default function ClientForm({ initial, mode, takenDesks, referrers = new Map(), onSave, onClose }) {
   const [form, setForm] = useState({ ...EMPTY_CLIENT(), ...cleanNulls(initial) })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -32,7 +32,10 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
   })
 
   const pickDesk = (d) => set('desk_number', d)
-
+  // Referral name: find an existing referrer with the same name (ignores capital letters / spaces)
+  const typedRef = (form.referral_name || '').trim().toLowerCase()
+  const existingRef = typedRef ? [...referrers.keys()].find(k => k.toLowerCase() === typedRef) : null
+  const useExistingSpelling = () => { if (existingRef && existingRef !== form.referral_name) set('referral_name', existingRef) }
   const amount = calcReferralAmount(form.deal_value, form.referral_percent)
 
   const submit = async (e) => {
@@ -168,7 +171,13 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
             <section>
               <h3>Referral</h3>
               <div className="grid2">
-                <label>Referral name<input value={form.referral_name} onChange={e => set('referral_name', e.target.value)} /></label>
+                                <label>Referral name
+                  <input list="referrer-list" value={form.referral_name} placeholder="Type or pick a name"
+                    onChange={e => set('referral_name', e.target.value)} onBlur={useExistingSpelling} />
+                  <datalist id="referrer-list">
+                    {[...referrers.keys()].sort().map(r => <option key={r} value={r} />)}
+                  </datalist>
+                </label>
                 <label>Deal value (AED)<input type="number" min="0" step="0.01" value={form.deal_value} onChange={e => set('deal_value', e.target.value)} /></label>
                 <label>Referral fee %<input type="number" min="0" max="100" step="0.01" value={form.referral_percent} onChange={e => set('referral_percent', e.target.value)} /></label>
                 <label>Amount (auto)<input value={aed(amount)} readOnly className="readonly" /></label>
