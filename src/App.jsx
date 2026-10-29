@@ -102,6 +102,12 @@ function CRM({ user }) {
     })
     return m
   }, [clients, editing])
+
+    // Lease amounts already used (unique, smallest first) for suggestions
+  const leaseAmounts = useMemo(() =>
+    [...new Set(clients.map(c => c.lease_amount).filter(v => v != null).map(Number))].sort((a, b) => a - b)
+  , [clients])
+  
   // Desks already given to other clients (shown grey in the desk list)
   const takenDesks = useMemo(() => new Map(
     clients.filter(c => c.desk_number && c.id !== editing?.id)
@@ -238,7 +244,7 @@ function CRM({ user }) {
         )}
       </main>
 
-      {editing && <ClientForm initial={editing} mode={formMode} takenDesks={takenDesks} referrers={referrers} onSave={save} onClose={() => setEditing(null)} />}
+      {editing && <ClientForm initial={editing} mode={formMode} takenDesks={takenDesks} referrers={referrers} leaseAmounts={leaseAmounts}  onSave={save} onClose={() => setEditing(null)} />}
     </div>
   )
 }
