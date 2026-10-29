@@ -314,3 +314,7 @@ h1, h2, .section-title, .kpi-num, .section-total { font-family: var(--font-headi
 .desk-head input { padding: 6px 9px; font-size: 13px; }
 .desk-list { max-height: 240px; overflow-y: auto; }
 .desk-empty { padding: 10px; color: var(--muted); font-size: 13px; }
+
+/* Total at the end of every table */
+.table-foot { position: sticky; left: 0; padding: 12px 16px; border-top: 1px solid var(--border); background: #fafaf7; font-size: 13px; color: var(--muted); }
+.table-foot strong { color: var(--ink); font-size: 14px; }
