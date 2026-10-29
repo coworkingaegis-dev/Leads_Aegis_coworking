@@ -40,7 +40,7 @@ export default function DeskPicker({ value, onChange, takenDesks }) {
             <>
               <div className="desk-head">
                 <button type="button" className="desk-back" onClick={() => setStep('unit')}>‹ 3812</button>
-                <input autoFocus placeholder="Search e.g. 045" value={q} onChange={e => setQ(e.target.value)} />
+                <input autoFocus placeholder="Search e.g. B-D05"" value={q} onChange={e => setQ(e.target.value)} />
               </div>
               <div className="desk-list">
                 {list.map(d => {
