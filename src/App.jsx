@@ -91,6 +91,17 @@ function CRM({ user }) {
     return counts
   }, [baseRows, tab])
 
+
+                       // Referral names already used by other clients: name -> how many clients they referred
+  const referrers = useMemo(() => {
+    const m = new Map()
+    clients.filter(c => c.referral_name && c.id !== editing?.id).forEach(c => {
+      const n = c.referral_name.trim()
+      const key = [...m.keys()].find(k => k.toLowerCase() === n.toLowerCase()) || n
+      m.set(key, (m.get(key) || 0) + 1)
+    })
+    return m
+  }, [clients, editing])
   // Desks already given to other clients (shown grey in the desk list)
   const takenDesks = useMemo(() => new Map(
     clients.filter(c => c.desk_number && c.id !== editing?.id)
@@ -227,7 +238,7 @@ function CRM({ user }) {
         )}
       </main>
 
-      {editing && <ClientForm initial={editing} mode={formMode} takenDesks={takenDesks} onSave={save} onClose={() => setEditing(null)} />}
+      {editing && <ClientForm initial={editing} mode={formMode} takenDesks={takenDesks} referrers={referrers} onSave={save} onClose={() => setEditing(null)} />}
     </div>
   )
 }
