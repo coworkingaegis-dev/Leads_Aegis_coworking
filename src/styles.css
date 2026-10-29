@@ -319,3 +319,25 @@ h1, h2, .section-title, .kpi-num, .section-total { font-family: var(--font-headi
 /* Total at the end of every table */
 .table-foot { position: sticky; left: 0; padding: 12px 16px; border-top: 1px solid var(--border); background: #fafaf7; font-size: 13px; color: var(--muted); }
 .table-foot strong { color: var(--ink); font-size: 14px; }
+
+
+
+
+
+/* Table fit fix: no overlapping columns */
+.actions-col { position: static; }
+th.actions-col { text-align: right; }
+td.actions-col { display: table-cell; white-space: nowrap; text-align: right; }
+td.actions-col .btn + .btn { margin-left: 4px; }
+td { white-space: normal; vertical-align: middle; }
+td[data-label="Email"] { overflow-wrap: anywhere; min-width: 150px; }
+td[data-label="Date"], td[data-label="Phone Number"], td[data-label="Source"], td[data-label="Status"] { white-space: nowrap; }
+th, td { padding-left: 9px; padding-right: 9px; font-size: 13.5px; }
+th { font-size: 11px; }
+@media (max-width: 1280px) { .tab-layout { grid-template-columns: 180px 1fr; } }
+@media (max-width: 1200px) {
+  .tab-layout { grid-template-columns: 1fr; }
+  .status-panel { position: static; display: flex; flex-wrap: wrap; gap: 6px; }
+  .status-panel h4 { width: 100%; }
+  .status-row { width: auto; border: 1px solid var(--border); }
+}
