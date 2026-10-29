@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import {
-  SOURCES, SERVICES, STATUSES, PAYMENT_PLANS, DESKS, YES_NO_FIELDS,
+  SOURCES, SERVICES, STATUSES, PAYMENT_PLANS, YES_NO_FIELDS,
   EMPTY_CLIENT, closedStatusFrom, closedLabel, calcReferralAmount, aed,
 } from '../constants'
 import { YesNoToggle } from './YesNo'
+import DeskPicker from './DeskPicker'
 
 /*
   mode:
@@ -66,7 +67,7 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
       payload.referral_percent = num(form.referral_percent)
       payload.referral_paid = form.referral_paid
       payload.notes = t(form.notes)
-        } else {
+    } else {
       payload.status = form.status || 'None'
       if (form.source === 'Referral') {
         payload.referral_name = t(form.referral_name)
@@ -147,17 +148,10 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
                   ))}
                 </div>
                 <div className="grid2" style={{ marginTop: 14 }}>
-                  <label>Desk Number
-                    <select value={form.desk_number} onChange={e => pickDesk(e.target.value)}>
-                      <option value="">—</option>
-                      <optgroup label="3812">
-                        {DESKS.map(d => {
-                          const owner = takenDesks.get(d)
-                          return <option key={d} value={d} disabled={!!owner}>{d.replace('3812-', '')}{owner ? ` — ${owner} (allocated)` : ''}</option>
-                        })}
-                      </optgroup>
-                    </select>
-                  </label>
+                  <div className="field">
+                    <span className="field-label">Desk Number</span>
+                    <DeskPicker value={form.desk_number} onChange={pickDesk} takenDesks={takenDesks} />
+                  </div>
                   <label>Payment Plan
                     <select value={form.payment_plan} onChange={e => set('payment_plan', e.target.value)}>
                       <option value="">—</option>{PAYMENT_PLANS.map(p => <option key={p}>{p}</option>)}
@@ -169,7 +163,7 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
             </section>
           )}
 
-                   {/* Referral: Closed and Referral tabs, and New / Clients edit when Source = Referral */}
+          {/* Referral: Closed and Referral tabs, and New / Clients edit when Source = Referral */}
           {(isClosedMode || isReferralMode || form.source === 'Referral') && (
             <section>
               <h3>Referral</h3>
@@ -179,7 +173,7 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
                 <label>Referral fee %<input type="number" min="0" max="100" step="0.01" value={form.referral_percent} onChange={e => set('referral_percent', e.target.value)} /></label>
                 <label>Amount (auto)<input value={aed(amount)} readOnly className="readonly" /></label>
               </div>
-                           {(isClosedMode || isReferralMode) && (
+              {(isClosedMode || isReferralMode) && (
                 <label style={{ marginTop: 12 }}>Notes<textarea rows="2" value={form.notes} onChange={e => set('notes', e.target.value)} /></label>
               )}
             </section>
