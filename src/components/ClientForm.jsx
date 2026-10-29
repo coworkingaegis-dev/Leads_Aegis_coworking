@@ -13,7 +13,7 @@ import DeskPicker from './DeskPicker'
    'closed'   -> Edit from Closed tab: basic details + Closed Client Status editable; main status hidden
    'referral' -> Edit from Referral tab: basic details + referral details + Payment Paid / Unpaid (separate)
 */
-export default function ClientForm({ initial, mode, takenDesks, referrers = new Map(), onSave, onClose }) {
+export default function ClientForm({ initial, mode, takenDesks, referrers = new Map(), leaseAmounts = [], onSave, onClose }) {
   const [form, setForm] = useState({ ...EMPTY_CLIENT(), ...cleanNulls(initial) })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -160,7 +160,13 @@ export default function ClientForm({ initial, mode, takenDesks, referrers = new 
                       <option value="">—</option>{PAYMENT_PLANS.map(p => <option key={p}>{p}</option>)}
                     </select>
                   </label>
-                  <label>Lease Amount (AED)<input type="number" min="0" step="0.01" value={form.lease_amount} onChange={e => set('lease_amount', e.target.value)} /></label>
+                 <label>Lease Amount (AED)
+                    <input type="number" min="0" step="0.01" list="lease-amount-list" placeholder="Type or pick an amount"
+                      value={form.lease_amount} onChange={e => set('lease_amount', e.target.value)} />
+                    <datalist id="lease-amount-list">
+                      {leaseAmounts.map(a => <option key={a} value={a} />)}
+                    </datalist>
+                  </label>
                 </div>
               </fieldset>
             </section>
