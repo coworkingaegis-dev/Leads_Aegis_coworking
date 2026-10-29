@@ -150,10 +150,12 @@ export default function ClientForm({ initial, mode, takenDesks, onSave, onClose 
                   <label>Desk Number
                     <select value={form.desk_number} onChange={e => pickDesk(e.target.value)}>
                       <option value="">—</option>
-                      {DESKS.map(d => {
-                        const owner = takenDesks.get(d)
-                        return <option key={d} value={d} disabled={!!owner}>{d}{owner ? ` — ${owner} (allocated)` : ''}</option>
-                      })}
+                      <optgroup label="3812">
+                        {DESKS.map(d => {
+                          const owner = takenDesks.get(d)
+                          return <option key={d} value={d} disabled={!!owner}>{d.replace('3812-', '')}{owner ? ` — ${owner} (allocated)` : ''}</option>
+                        })}
+                      </optgroup>
                     </select>
                   </label>
                   <label>Payment Plan
