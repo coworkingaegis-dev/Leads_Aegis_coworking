@@ -40,7 +40,12 @@ export const REFERRAL_STATUSES = ['Payment Paid', 'Payment Unpaid']
 export const paymentLabel = (c) => (c.referral_paid === true ? 'Payment Paid' : 'Payment Unpaid')
 
 // Desk numbers 3812-A-001 … 3812-A-3000
-export const DESKS = Array.from({ length: 3000 }, (_, i) => `3812-A-D${String(i + 1).padStart(2, '0')}`)
+// Desk numbers: 46 desks per row, then the next letter starts
+// A-D01 … A-D46, B-D01 … B-D46, C-D01 … (saved as 3812-A-D01 etc.)
+export const DESK_ROWS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+export const DESKS_PER_ROW = 46
+export const DESKS = DESK_ROWS.flatMap(row =>
+  Array.from({ length: DESKS_PER_ROW }, (_, i) => `3812-${row}-D${String(i + 1).padStart(2, '0')}`))
 
 const today = () => new Date().toISOString().slice(0, 10)
 
